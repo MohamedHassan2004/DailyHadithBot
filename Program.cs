@@ -11,16 +11,17 @@ using User = TelegramBot.Entities.User;
 // ========================================
 // 1. CONFIGURATION
 // ========================================
-var configuration = new ConfigurationBuilder()
+var builder = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
-    .AddEnvironmentVariables()
-    .Build();
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true) 
+    .AddEnvironmentVariables();
 
-var botToken = configuration["BotToken"] 
-    ?? throw new InvalidOperationException("BotToken is not configured.");
-var connectionString = configuration.GetConnectionString("DefaultConnection") 
-    ?? throw new InvalidOperationException("ConnectionString is not configured.");
+IConfiguration config = builder.Build();
+
+string connectionString = config.GetConnectionString("DefaultConnection") 
+                          ?? Environment.GetEnvironmentVariable("CONNECTION_STRING"); 
+string botToken = config["BotToken"] 
+                  ?? Environment.GetEnvironmentVariable("BOT_TOKEN"); 
 
 Console.WriteLine("Configuration loaded successfully.");
 

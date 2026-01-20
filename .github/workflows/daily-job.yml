@@ -1,0 +1,33 @@
+name: Daily Hadith Sender
+
+on:
+  schedule:
+    # Runs at 6:00 UTC daily (which is 8:00 AM or 9:00 AM Cairo time depending on DST)
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Run Bot
+      run: dotnet run --no-build --configuration Release
+      env:
+        # Map secrets to environment variables matching your Program.cs logic
+        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
