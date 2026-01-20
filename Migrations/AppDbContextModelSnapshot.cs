@@ -30,6 +30,13 @@ namespace TelegramBot.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BookName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ChapterId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("text");

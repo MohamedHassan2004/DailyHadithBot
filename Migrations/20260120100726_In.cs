@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace TelegramBot.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class In : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,7 +18,9 @@ namespace TelegramBot.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Text = table.Column<string>(type: "text", nullable: false)
+                    Text = table.Column<string>(type: "text", nullable: false),
+                    BookName = table.Column<string>(type: "text", nullable: false),
+                    ChapterId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {

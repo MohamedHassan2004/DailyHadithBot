@@ -12,8 +12,8 @@ using TelegramBot.Data;
 namespace TelegramBot.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260120055911_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260120100726_In")]
+    partial class In
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,6 +32,13 @@ namespace TelegramBot.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BookName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ChapterId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Text")
                         .IsRequired()

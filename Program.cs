@@ -58,15 +58,27 @@ if (!await db.Hadiths.AnyAsync())
     using var httpClient = new HttpClient();
     var jsonContent = await httpClient.GetStringAsync(hadithJsonUrl);
     
-    // Parse JSON - the structure contains hadiths array
+    // Parse JSON - the structure contains hadiths and chapters arrays
     var hadithData = JsonConvert.DeserializeObject<HadithJsonRoot>(jsonContent);
     
-    if (hadithData?.Hadiths != null && hadithData.Hadiths.Count > 0)
+    if (hadithData?.Hadiths != null && hadithData.Hadiths.Count > 0 && hadithData.Chapters != null)
     {
-        var hadiths = hadithData.Hadiths.Select((h, index) => new Hadith
+        // Create a dictionary of chapter IDs to Arabic book names
+        var chapterNames = hadithData.Chapters.ToDictionary(c => c.Id, c => c.Arabic ?? string.Empty);
+        
+        // Order hadiths: "كتاب المقدمات" (chapterId = 0) first, then by chapterId, then by idInBook
+        var orderedHadiths = hadithData.Hadiths
+            .OrderBy(h => h.ChapterId == 0 ? 0 : 1)  // المقدمات first
+            .ThenBy(h => h.ChapterId)
+            .ThenBy(h => h.IdInBook)
+            .ToList();
+        
+        var hadiths = orderedHadiths.Select((h, index) => new Hadith
         {
             Id = index + 1,
-            Text = h.Text ?? h.Arabic ?? string.Empty
+            Text = h.Arabic ?? string.Empty,
+            ChapterId = h.ChapterId,
+            BookName = chapterNames.GetValueOrDefault(h.ChapterId, "غير محدد")
         }).ToList();
         
         await db.Hadiths.AddRangeAsync(hadiths);
@@ -119,7 +131,7 @@ try
                 // Send welcome message
                 await botClient.SendMessage(
                     chatId: chatId,
-                    text: "مرحباً بك! تم تسجيلك بنجاح. ستتلقى حديثاً يومياً من رياض الصالحين. 📖\n\nWelcome! You have been subscribed. You will receive a daily Hadith from Riyad as-Salihin."
+                    text: "مرحباً بك! تم تسجيلك بنجاح. ستتلقى حديثاً يومياً من رياض الصالحين. 📖"
                 );
                 
                 Console.WriteLine($"New user registered: {chatId}");
@@ -161,7 +173,7 @@ foreach (var user in users)
             
             await botClient.SendMessage(
                 chatId: user.TelegramChatId,
-                text: "🎉 مبارك! لقد أكملت دورة كاملة من أحاديث رياض الصالحين. سنبدأ من جديد!\n\n🎉 Congratulations! You have completed a full cycle of Riyad as-Salihin hadiths. Starting over!"
+                text: "🎉 مبارك! لقد أكملت دورة كاملة من أحاديث رياض الصالحين. سنبدأ من جديد!"
             );
             
             Console.WriteLine($"User {user.TelegramChatId}: Cycle completed, reset to 1.");
@@ -172,7 +184,7 @@ foreach (var user in users)
         
         if (hadith != null)
         {
-            var messageText = $"📖 حديث اليوم ({user.CurrentHadithIndex}/{totalHadiths}):\n\n{hadith.Text}";
+            var messageText = $"📖 حديث اليوم ({user.CurrentHadithIndex}/{totalHadiths})\n📚 من {hadith.BookName}\n\n{hadith.Text}";
             
             await botClient.SendMessage(
                 chatId: user.TelegramChatId,
@@ -207,13 +219,28 @@ public class HadithJsonRoot
 {
     [JsonProperty("hadiths")]
     public List<HadithJson>? Hadiths { get; set; }
+    
+    [JsonProperty("chapters")]
+    public List<ChapterJson>? Chapters { get; set; }
+}
+
+public class ChapterJson
+{
+    [JsonProperty("id")]
+    public int Id { get; set; }
+    
+    [JsonProperty("arabic")]
+    public string? Arabic { get; set; }
 }
 
 public class HadithJson
 {
-    [JsonProperty("text")]
-    public string? Text { get; set; }
-    
     [JsonProperty("arabic")]
     public string? Arabic { get; set; }
+    
+    [JsonProperty("chapterId")]
+    public int ChapterId { get; set; }
+    
+    [JsonProperty("idInBook")]
+    public int IdInBook { get; set; }
 }
