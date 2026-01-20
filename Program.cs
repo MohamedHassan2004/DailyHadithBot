@@ -18,12 +18,23 @@ var builder = new ConfigurationBuilder()
 
 IConfiguration config = builder.Build();
 
-string connectionString = config.GetConnectionString("DefaultConnection") 
+// Retrieve and validata configuration
+string? connectionString = config.GetConnectionString("DefaultConnection") 
                           ?? Environment.GetEnvironmentVariable("CONNECTION_STRING"); 
-string botToken = config["BotToken"] 
+string? botToken = config["BotToken"] 
                   ?? Environment.GetEnvironmentVariable("BOT_TOKEN"); 
 
-Console.WriteLine("Configuration loaded successfully.");
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("CRITICAL ERROR: ConnectionString is missing. " +
+        "Ensure 'ConnectionStrings:DefaultConnection' is set in appsettings.json OR 'CONNECTION_STRING' environment variable is set.");
+}
+
+if (string.IsNullOrEmpty(botToken))
+{
+    throw new InvalidOperationException("CRITICAL ERROR: BotToken is missing. " +
+        "Ensure 'BotToken' is set in appsettings.json OR 'BOT_TOKEN' environment variable is set.");
+} 
 
 // ========================================
 // 2. INITIALIZE BOT AND DATABASE
