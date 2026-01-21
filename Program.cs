@@ -58,7 +58,9 @@ try
 
     foreach (var update in updates)
     {
-        Console.WriteLine(update.Message);
+        // print update info
+        var message = update.Message;
+        Console.WriteLine($"UserId: {message?.Chat.Id}, User: {message?.Chat.FirstName} {message?.Chat.LastName}, Message: {message?.Text}");
 
         if (update.Message?.Text?.StartsWith("/start") == true)
         {
