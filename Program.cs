@@ -47,57 +47,7 @@ await db.Database.EnsureCreatedAsync();
 Console.WriteLine("Database connection established.");
 
 // ========================================
-// 3. DATA SEEDING (FIRST RUN)
-// ========================================
-if (!await db.Hadiths.AnyAsync())
-{
-    Console.WriteLine("Database is empty. Fetching Hadith data...");
-
-    const string hadithJsonUrl = "https://raw.githubusercontent.com/AhmedBaset/hadith-json/main/db/by_book/other_books/riyad_assalihin.json";
-
-    using var httpClient = new HttpClient();
-    var jsonContent = await httpClient.GetStringAsync(hadithJsonUrl);
-
-    // Parse JSON - the structure contains hadiths and chapters arrays
-    var hadithData = JsonConvert.DeserializeObject<HadithJsonRoot>(jsonContent);
-
-    if (hadithData?.Hadiths != null && hadithData.Hadiths.Count > 0 && hadithData.Chapters != null)
-    {
-        // Create a dictionary of chapter IDs to Arabic book names
-        var chapterNames = hadithData.Chapters.ToDictionary(c => c.Id, c => c.Arabic ?? string.Empty);
-
-        // Order hadiths: "كتاب المقدمات" (chapterId = 0) first, then by chapterId, then by idInBook
-        var orderedHadiths = hadithData.Hadiths
-            .OrderBy(h => h.ChapterId == 0 ? 0 : 1)  // المقدمات first
-            .ThenBy(h => h.ChapterId)
-            .ThenBy(h => h.IdInBook)
-            .ToList();
-
-        var hadiths = orderedHadiths.Select((h, index) => new Hadith
-        {
-            Id = index + 1,
-            Text = h.Arabic ?? string.Empty,
-            ChapterId = h.ChapterId,
-            BookName = chapterNames.GetValueOrDefault(h.ChapterId, "غير محدد")
-        }).ToList();
-
-        await db.Hadiths.AddRangeAsync(hadiths);
-        await db.SaveChangesAsync();
-
-        Console.WriteLine($"Seeded {hadiths.Count} hadiths into the database.");
-    }
-    else
-    {
-        Console.WriteLine("Warning: No hadiths found in the JSON data.");
-    }
-}
-else
-{
-    Console.WriteLine($"Database already contains {await db.Hadiths.CountAsync()} hadiths.");
-}
-
-// ========================================
-// 4. CATCH-UP LOGIC (HANDLE NEW USERS)
+// 3. CATCH-UP LOGIC (HANDLE NEW USERS)
 // ========================================
 Console.WriteLine("Checking for offline updates...");
 
@@ -156,64 +106,25 @@ catch (Exception ex)
 }
 
 // ========================================
-// 5. DAILY BROADCAST LOGIC
+// 5. Broadcast specific message to all users
 // ========================================
-Console.WriteLine("Starting daily broadcast...");
-
-var totalHadiths = await db.Hadiths.CountAsync();
+Console.WriteLine("Broadcasting specific message to all users...");
 var users = await db.Users.ToListAsync();
-
-Console.WriteLine($"Broadcasting to {users.Count} users. Total hadiths: {totalHadiths}");
-
 foreach (var user in users)
 {
     try
     {
-        // Handle cycle completion
-        if (user.CurrentHadithIndex > totalHadiths)
-        {
-            user.CurrentHadithIndex = 1;
-
-            await botClient.SendMessage(
-                chatId: user.TelegramChatId,
-                text: "🎉 مبارك! لقد أكملت دورة كاملة من أحاديث رياض الصالحين. سنبدأ من جديد!"
-            );
-
-            Console.WriteLine($"User {user.TelegramChatId}: Cycle completed, reset to 1.");
-        }
-
-        // Get current hadith
-        var hadith = await db.Hadiths.FirstOrDefaultAsync(h => h.Id == user.CurrentHadithIndex);
-
-        if (hadith != null)
-        {
-            var messageText = $"📖 حديث اليوم ({user.CurrentHadithIndex}/{totalHadiths})\n📚 من {hadith.BookName}\n\n{hadith.Text}";
-
-            await botClient.SendMessage(
-                chatId: user.TelegramChatId,
-                text: messageText
-            );
-
-            // Increment index
-            user.CurrentHadithIndex++;
-
-            Console.WriteLine($"User {user.TelegramChatId}: Sent hadith #{user.CurrentHadithIndex - 1}");
-        }
-        else
-        {
-            Console.WriteLine($"User {user.TelegramChatId}: Hadith #{user.CurrentHadithIndex} not found.");
-        }
+        await botClient.SendMessage(
+            chatId: user.TelegramChatId,
+            text: "هذا اختبار لإرسال رسالة محددة إلى جميع المستخدمين."
+        );
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Error sending to user {user.TelegramChatId}: {ex.Message}");
+        Console.WriteLine($"Error sending to user {user.FullName}: {ex.Message}");
     }
 }
-
-// Save all changes
-await db.SaveChangesAsync();
-
-Console.WriteLine("Daily broadcast completed. Exiting...");
+Console.WriteLine("Complete broadcasting message.");
 
 // ========================================
 // HELPER CLASSES FOR JSON PARSING
