@@ -106,27 +106,6 @@ catch (Exception ex)
 }
 
 // ========================================
-// 5. Broadcast specific message to all users
-// ========================================
-Console.WriteLine("Broadcasting specific message to all users...");
-var users = await db.Users.ToListAsync();
-foreach (var user in users)
-{
-    try
-    {
-        await botClient.SendMessage(
-            chatId: user.TelegramChatId,
-            text: "هذا اختبار لإرسال رسالة محددة إلى جميع المستخدمين."
-        );
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error sending to user {user.FullName}: {ex.Message}");
-    }
-}
-Console.WriteLine("Complete broadcasting message.");
-
-// ========================================
 // HELPER CLASSES FOR JSON PARSING
 // ========================================
 public class HadithJsonRoot
