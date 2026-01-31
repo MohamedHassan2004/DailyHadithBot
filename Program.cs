@@ -111,6 +111,11 @@ catch (Exception ex)
 // 5. Broadcast specific message to all users
 // ========================================
 Console.WriteLine("Broadcasting specific message to all users...");
+
+// قراءة الرسالة من environment variable أو استخدام رسالة افتراضية
+string broadcastMessage = Environment.GetEnvironmentVariable("BROADCAST_MESSAGE") 
+    ?? "هذا اختبار لإرسال رسالة محددة إلى جميع المستخدمين.";
+
 var users = await db.Users.ToListAsync();
 foreach (var user in users)
 {
@@ -118,7 +123,7 @@ foreach (var user in users)
     {
         await botClient.SendMessage(
             chatId: user.TelegramChatId,
-            text: "هذا اختبار لإرسال رسالة محددة إلى جميع المستخدمين."
+            text: broadcastMessage
         );
     }
     catch (Exception ex)
