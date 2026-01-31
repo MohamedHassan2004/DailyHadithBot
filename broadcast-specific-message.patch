@@ -1,0 +1,38 @@
+From ac5444bfa010c8b60f118d2c619f5492f73d086b Mon Sep 17 00:00:00 2001
+From: "copilot-swe-agent[bot]" <198982749+Copilot@users.noreply.github.com>
+Date: Sat, 31 Jan 2026 17:57:38 +0000
+Subject: [PATCH] Read broadcast message from BROADCAST_MESSAGE environment
+ variable
+
+---
+ Program.cs | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/Program.cs b/Program.cs
+index 4d81063..df827e5 100644
+--- a/Program.cs
++++ b/Program.cs
+@@ -111,6 +111,11 @@ catch (Exception ex)
+ // 5. Broadcast specific message to all users
+ // ========================================
+ Console.WriteLine("Broadcasting specific message to all users...");
++
++// Read the broadcast message from environment variable, with a default fallback
++string broadcastMessage = Environment.GetEnvironmentVariable("BROADCAST_MESSAGE") 
++    ?? "هذا اختبار لإرسال رسالة محددة إلى جميع المستخدمين.";
++
+ var users = await db.Users.ToListAsync();
+ foreach (var user in users)
+ {
+@@ -118,7 +123,7 @@ foreach (var user in users)
+     {
+         await botClient.SendMessage(
+             chatId: user.TelegramChatId,
+-            text: "هذا اختبار لإرسال رسالة محددة إلى جميع المستخدمين."
++            text: broadcastMessage
+         );
+     }
+     catch (Exception ex)
+-- 
+2.52.0
+

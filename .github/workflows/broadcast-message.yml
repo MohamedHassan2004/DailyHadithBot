@@ -1,0 +1,37 @@
+name: Broadcast Message
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'الرسالة المراد إرسالها لجميع المستخدمين'
+        required: true
+        type: string
+
+jobs:
+  broadcast:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: broadcast-specific-message
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Run Broadcast
+      run: dotnet run --no-build --configuration Release
+      env:
+        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
+        BROADCAST_MESSAGE: ${{ github.event.inputs.message }}
