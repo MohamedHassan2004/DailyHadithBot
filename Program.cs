@@ -120,6 +120,7 @@ foreach (var user in users)
             chatId: user.TelegramChatId,
             text: "هذا اختبار لإرسال رسالة محددة إلى جميع المستخدمين."
         );
+        await Task.Delay(50); // Brief delay to avoid hitting rate limits
     }
     catch (Exception ex)
     {
