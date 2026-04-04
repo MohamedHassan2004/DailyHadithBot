@@ -118,7 +118,7 @@ foreach (var user in users)
     {
         await botClient.SendMessage(
             chatId: user.TelegramChatId,
-            text: "هذا اختبار لإرسال رسالة محددة إلى جميع المستخدمين."
+            text: "۝ إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ ۚ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا ۝"
         );
         await Task.Delay(50); // Brief delay to avoid hitting rate limits
     }
